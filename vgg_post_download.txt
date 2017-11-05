@@ -1,0 +1,11 @@
+* in vgg16.py, set
+require_flatten = True
+instead of include_top
+
+// 'top' meaning the layers that come towards the end; capturing higher level features
+
+include_top=False in VGG16 definition
+
+pip install h5py
+pip install pillow
+pip install opencv-python (for cv2)
