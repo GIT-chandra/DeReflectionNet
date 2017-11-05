@@ -13,6 +13,10 @@ class DeReflectionNet:
                         'batch_size':batch_size,
                         'shuffle':shuffle,
                         'auxiliary':auxiliary}
+        self.dim_x = dim_x
+        self.dim_y = dim_y
+        self.dim_z = dim_z
+
         base_model = VGG16(weights='imagenet')
         self.vgg_A = Model(input=base_model.input, output=base_model.get_layer('block3_pool').output)
         self.vgg_S = Model(input=base_model.input, output=base_model.get_layer('block5_pool').output)
@@ -24,3 +28,17 @@ class DeReflectionNet:
 
     def load_data(self):
         return
+
+    def get_model(self):
+        inputs = Input(shape = (self.dim_x,self.dim_y,self.dim_z))
+
+        only_rgb = inputs[:,:,0:self.dim_z-2]
+
+        img_arr = image.img_to_array(only_rgb)
+        img_arr = np.expand_dims(img_arr, axis=0)
+        img_arr = preprocess_input(img_arr)
+
+        features_A = self.vggA.predict(img_arr)
+        features_S = self.vggS.predict(img_arr)
+
+        
