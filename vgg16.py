@@ -199,9 +199,12 @@ if __name__ == '__main__':
     # img = image.load_img(img_path)
 
     x = image.img_to_array(img)
+    print(type(x))
     x = np.expand_dims(x, axis=0)
+    print('Input image shape:', x.shape)
     x = preprocess_input(x)
     print('Input image shape:', x.shape)
+    print('Input image type:', type(x))
     # model = VGG16(include_top=False, weights='imagenet',input_shape = (x.shape[1],x.shape[2],x.shape[3]))
 
     preds = model.predict(x)
