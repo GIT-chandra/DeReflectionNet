@@ -35,6 +35,12 @@ class TrainHistory(keras.callbacks.Callback):
         self.model.save_weights(WEIGHTS_FILE)
         print('Saved.')
 
+    def save_to_files(self):
+        np.save('DeReflectionNet_A_train_losses.npy',self.train_losses)
+        np.save('DeReflectionNet_A_train_accs.npy',self.train_accs)
+        np.save('DeReflectionNet_A_val_losses.npy',self.val_losses)
+        np.save('DeReflectionNet_A_val_accs.npy',self.val_accs)
+
 
 class DeReflectionNet:
     def __init__(self,dim_x = 224, dim_y = 224, dim_z = 5, batch_size = 32, num_epochs = 30, shuffle = True, auxiliary = False):
@@ -115,7 +121,7 @@ class DeReflectionNet:
         xa = self.__get_conv(64,(5,5),'same','ConvA_4',xa)
         outA = self.__get_upconv(3,(2,2),(2,2),'valid','OutA',xa)
 
-        outputs = self.__get_conv(3,(1,1),'valid','Final_conv',outA,False)
+        outputs = Conv2D(3, (1,1), activation = 'sigmoid', padding = 'valid', name = 'Final_conv', kernel_initializer = 'glorot_normal')(outA)
         model = Model(input = inputs, output = outputs)
         model.compile(optimizer = Adam(lr = 1e-4, decay = 0.0005), loss = 'mean_squared_error', metrics = ['accuracy'])
         model.summary()
@@ -135,10 +141,11 @@ class DeReflectionNet:
 
 if __name__ == '__main__':
     myDRnet = DeReflectionNet()
-    print("Loading weights for A-net ...")
-    myDRnet.model.load_weights('DeReflectionNet_A_30_epochs.h5')
-    print("Loaded weights.")
+    # print("Loading weights for A-net ...")
+    # myDRnet.model.load_weights('DeReflectionNet_A_30_epochs.h5')
+    # print("Loaded weights.")
     myDRnet.train_model()
+    myDRnet.history.save_to_files()
 
     # ID = 'sample.jpg'
     # cv_img = cv2.imread(ID)

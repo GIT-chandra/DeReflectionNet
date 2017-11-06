@@ -75,9 +75,9 @@ class DataGenerator:
             cv_img = cv2.imread(ID)
             img = np.zeros(cv_img.shape)
             img += cv_img
-            X[i,:,:,0:3] = img
-            X[i,:,:,3] = get_gradient(ID[:-4] + "_b.jpg")
-            X[i,:,:,4] = get_gradient(ID[:-4] + "_r.jpg")
+            X[i,:,:,0:3] = img/255
+            X[i,:,:,3] = get_gradient(ID[:-4] + "_b.jpg")/255
+            X[i,:,:,4] = get_gradient(ID[:-4] + "_r.jpg")/255
             # f_A = get_features_A(ID + ".jpg")
             # f_S = get_features_S(ID + ".jpg")
             # X[i,:,:,5:9,0] = f_A.reshape((self.dim_x,self.dim_y,4))
@@ -92,7 +92,7 @@ class DataGenerator:
             cv_back = cv2.imread(label_fname)
             back = np.zeros(cv_back.shape)
             back += cv_back
-            y[i,:,:,:] = back
+            y[i,:,:,:] = back/255
 
         return X,y
 
