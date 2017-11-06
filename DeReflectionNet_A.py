@@ -6,7 +6,7 @@ from keras import backend as K
 from keras.layers.advanced_activations import  PReLU
 from Classes_DeReflectionNet import *
 import numpy as np
-import keras
+import keras, cv2
 
 TRAIN_FILES = './train_imgs/*'
 VAL_FILES = './val_imgs/*'
@@ -31,11 +31,13 @@ class TrainHistory(keras.callbacks.Callback):
     def on_epoch_end(self, epoch, logs={}):
         self.val_losses.append(logs.get('val_loss'))
         self.val_accs.append(logs.get('val_acc'))
+        print('Saving Weights..')
         self.model.save_weights(WEIGHTS_FILE)
+        print('Saved.')
 
 
 class DeReflectionNet:
-    def __init__(self,dim_x = 224, dim_y = 224, dim_z = 5, batch_size = 2, num_epochs = 5, shuffle = True, auxiliary = False):
+    def __init__(self,dim_x = 224, dim_y = 224, dim_z = 5, batch_size = 32, num_epochs = 30, shuffle = True, auxiliary = False):
         self.data_params = {'dim_x': dim_x,
                         'dim_y':dim_y,
                         'dim_z':dim_z,
@@ -133,4 +135,18 @@ class DeReflectionNet:
 
 if __name__ == '__main__':
     myDRnet = DeReflectionNet()
+    print("Loading weights for A-net ...")
+    myDRnet.model.load_weights('DeReflectionNet_A_30_epochs.h5')
+    print("Loaded weights.")
     myDRnet.train_model()
+
+    # ID = 'sample.jpg'
+    # cv_img = cv2.imread(ID)
+    # img = np.zeros(cv_img.shape)
+    # img += cv_img
+    # X = np.empty((1,224,224,5))
+    # X[0,:,:,0:3] = img
+    # X[0,:,:,3] = get_gradient(ID[:-4] + "_b.jpg")
+    # X[0,:,:,4] = get_gradient(ID[:-4] + "_r.jpg")
+    #
+    # res = myDRnet.model.predict(X)
