@@ -43,7 +43,7 @@ class TrainHistory(keras.callbacks.Callback):
 
 
 class DeReflectionNet:
-    def __init__(self,dim_x = 224, dim_y = 224, dim_z = 5, batch_size = 32, num_epochs = 30, shuffle = True, auxiliary = False):
+    def __init__(self,dim_x = 224, dim_y = 224, dim_z = 3, batch_size = 32, num_epochs = 30, shuffle = True, auxiliary = False):
         self.data_params = {'dim_x': dim_x,
                         'dim_y':dim_y,
                         'dim_z':dim_z,
@@ -114,7 +114,6 @@ class DeReflectionNet:
         x2a = self.__get_conv(64,(1,1),'valid','VggA_conv',x2a)
 
         xa = Concatenate(axis=3)([x1a,x2a])
-        print(xa.shape)
         xa = self.__get_conv(64,(5,5),'same','ConvA_1',xa)
         xa = self.__get_conv(64,(5,5),'same','ConvA_2',xa)
         xa = self.__get_conv(64,(5,5),'same','ConvA_3',xa)

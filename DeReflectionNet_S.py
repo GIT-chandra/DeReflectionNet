@@ -14,12 +14,11 @@ VAL_FILES = './val_imgs/*'
 TRAIN_IMAGES_LIST = 'train_imgs.txt'
 VAL_IMAGES_LIST = 'val_imgs.txt'
 
-WEIGHTS_FILE = 'DeReflectionNet.h5'
+WEIGHTS_FILE = 'DeReflectionNet_S.h5'
 VGG_WEIGHTS = 'vgg16_weights_tf_dim_ordering_tf_kernels.h5'
 
 class TrainHistory(keras.callbacks.Callback):
     def __init__(self):
-        self.count = 0
         self.train_losses = []
         self.train_accs = []
         self.val_losses = []
@@ -33,19 +32,18 @@ class TrainHistory(keras.callbacks.Callback):
         self.val_losses.append(logs.get('val_loss'))
         self.val_accs.append(logs.get('val_acc'))
         print('Saving Weights..')
-        self.model.save_weights(WEIGHTS_FILE[:-3]+str(self.count) + ".h5")
+        self.model.save_weights(WEIGHTS_FILE)
         print('Saved.')
-        self.count += 1
 
     def save_to_files(self):
-        np.save('DeReflectionNet_train_losses.npy',self.train_losses)
-        np.save('DeReflectionNet_train_accs.npy',self.train_accs)
-        np.save('DeReflectionNet_val_losses.npy',self.val_losses)
-        np.save('DeReflectionNet_val_accs.npy',self.val_accs)
+        np.save('DeReflectionNet_S_train_losses.npy',self.train_losses)
+        np.save('DeReflectionNet_S_train_accs.npy',self.train_accs)
+        np.save('DeReflectionNet_S_val_losses.npy',self.val_losses)
+        np.save('DeReflectionNet_S_val_accs.npy',self.val_accs)
 
 
 class DeReflectionNet:
-    def __init__(self,dim_x = 224, dim_y = 224, dim_z = 5, batch_size = 12, num_epochs = 30, shuffle = True, auxiliary = False):
+    def __init__(self,dim_x = 224, dim_y = 224, dim_z = 5, batch_size = 32, num_epochs = 5, shuffle = True, auxiliary = False):
         self.data_params = {'dim_x': dim_x,
                         'dim_y':dim_y,
                         'dim_z':dim_z,
@@ -91,48 +89,35 @@ class DeReflectionNet:
     def __get_model(self):
         inputs = Input(shape = (self.dim_x,self.dim_y,self.dim_z))
 
-        x1a = self.__get_conv(96,(9,9),'same','PreA_Conv',inputs)
-        x1a = MaxPooling2D(pool_size=(2,2))(x1a)
-
         img_input = Lambda(self.__extract_image, output_shape = (self.dim_x,self.dim_y,3))(inputs)
 
         #  Here goes VGG16
-        x = Conv2D(64, (3, 3), activation='relu', padding='same' , name='block1_conv1')(img_input)
-        x = Conv2D(64, (3, 3), activation='relu', padding='same' , name='block1_conv2')(x)
+        x = Conv2D(64, (3, 3), activation='relu', padding='same', trainable = False ,name='block1_conv1')(img_input)
+        x = Conv2D(64, (3, 3), activation='relu', padding='same', trainable = False , name='block1_conv2')(x)
         x = MaxPooling2D((2, 2), strides=(2, 2), name='block1_pool')(x)
 
         # Block 2
-        x = Conv2D(128, (3, 3), activation='relu', padding='same' , name='block2_conv1')(x)
-        x = Conv2D(128, (3, 3), activation='relu', padding='same' , name='block2_conv2')(x)
+        x = Conv2D(128, (3, 3), activation='relu', padding='same', trainable = False , name='block2_conv1')(x)
+        x = Conv2D(128, (3, 3), activation='relu', padding='same', trainable = False , name='block2_conv2')(x)
         x = MaxPooling2D((2, 2), strides=(2, 2), name='block2_pool')(x)
 
         # Block 3
-        x = Conv2D(256, (3, 3), activation='relu', padding='same' , name='block3_conv1')(x)
-        x = Conv2D(256, (3, 3), activation='relu', padding='same' , name='block3_conv2')(x)
-        x = Conv2D(256, (3, 3), activation='relu', padding='same' , name='block3_conv3')(x)
+        x = Conv2D(256, (3, 3), activation='relu', padding='same', trainable = False , name='block3_conv1')(x)
+        x = Conv2D(256, (3, 3), activation='relu', padding='same', trainable = False , name='block3_conv2')(x)
+        x = Conv2D(256, (3, 3), activation='relu', padding='same', trainable = False , name='block3_conv3')(x)
         features_A = MaxPooling2D((2, 2), strides=(2, 2), name='block3_pool')(x)
 
         # Block 4
-        x = Conv2D(512, (3, 3), activation='relu', padding='same' , name='block4_conv1')(features_A)
-        x = Conv2D(512, (3, 3), activation='relu', padding='same' , name='block4_conv2')(x)
-        x = Conv2D(512, (3, 3), activation='relu', padding='same' , name='block4_conv3')(x)
+        x = Conv2D(512, (3, 3), activation='relu', padding='same', trainable = False , name='block4_conv1')(features_A)
+        x = Conv2D(512, (3, 3), activation='relu', padding='same', trainable = False , name='block4_conv2')(x)
+        x = Conv2D(512, (3, 3), activation='relu', padding='same', trainable = False , name='block4_conv3')(x)
         x = MaxPooling2D((2, 2), strides=(2, 2), name='block4_pool')(x)
 
         # Block 5
-        x = Conv2D(512, (3, 3), activation='relu', padding='same' , name='block5_conv1')(x)
-        x = Conv2D(512, (3, 3), activation='relu', padding='same' , name='block5_conv2')(x)
-        x = Conv2D(512, (3, 3), activation='relu', padding='same' , name='block5_conv3')(x)
+        x = Conv2D(512, (3, 3), activation='relu', padding='same', trainable = False , name='block5_conv1')(x)
+        x = Conv2D(512, (3, 3), activation='relu', padding='same', trainable = False , name='block5_conv2')(x)
+        x = Conv2D(512, (3, 3), activation='relu', padding='same', trainable = False , name='block5_conv3')(x)
         features_S = MaxPooling2D((2, 2), strides=(2, 2), name='block5_pool')(x)
-
-        x2a = self.__get_upconv(256,(4,4),(4,4),'valid','VggA_Upconv',features_A)
-        x2a = self.__get_conv(64,(1,1),'valid','VggA_conv',x2a)
-
-        xa = Concatenate(axis=3)([x1a,x2a])
-        xa = self.__get_conv(64,(5,5),'same','ConvA_1',xa)
-        xa = self.__get_conv(64,(5,5),'same','ConvA_2',xa)
-        xa = self.__get_conv(64,(5,5),'same','ConvA_3',xa)
-        xa = self.__get_conv(64,(5,5),'same','ConvA_4',xa)
-        outA = self.__get_upconv(3,(2,2),(2,2),'valid','OutA',xa)
 
         x1s = self.__get_conv(96,(9,9),'same','PreS_Conv',inputs)
         x1s = MaxPooling2D(pool_size=(2,2))(x1s)
@@ -148,23 +133,16 @@ class DeReflectionNet:
         xs = self.__get_conv(64,(5,5),'same','ConvS_4',xs)
         outS = self.__get_upconv(3,(2,2),(2,2),'valid','OutS',xs)
 
-        outputs = Concatenate(axis=3)([outA,outS])
-        outputs = Conv2D(3, (1,1), activation = 'sigmoid', padding = 'valid', name = 'Final_conv_AS')(outputs)
+        outputs = Conv2D(3, (1,1), activation = 'sigmoid', padding = 'valid', name = 'Final_conv', kernel_initializer = 'glorot_normal')(outS)
         model = Model(input = inputs, output = outputs)
         model.compile(optimizer = Adam(lr = 1e-4, decay = 0.0005), loss = 'mean_squared_error', metrics = ['accuracy'])
         model.summary()
         return model
 
     def train_model(self):
-
         print("Loading weights for VGG16 ...")
         self.model.load_weights(VGG_WEIGHTS,by_name = True)
         print("Loaded weights.")
-
-        # print("Loading weights ...")
-        # self.model.load_weights(WEIGHTS_FILE[:-3] + "_S.h5",by_name = True)
-        # self.model.load_weights(WEIGHTS_FILE[:-3] + "_A.h5",by_name = True)
-        # print("Loaded weights.")
         self.model.fit_generator(generator = self.training_generator,
                                 steps_per_epoch = len(self.partition['train'])//self.batch_size,
                                 epochs = self.num_epochs,
