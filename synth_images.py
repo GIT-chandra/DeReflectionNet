@@ -1,4 +1,4 @@
-import cv2
+import cv2, random
 from matplotlib import pyplot as plt
 import numpy as np
 
@@ -8,18 +8,18 @@ BRIGHT_IMAGES_LIST = 'bright_imgs.txt'
 BRIGHT_IMAGES_VALS = 'bright_imgs_vals.txt'
 ALL_SYNTHS_LIST = 'synth_imgs.txt'
 SAVE_PATH = './generated_synths/'
-BRIGHTS_PER_DARK = 9
-BRIGHTS_PER_BRIGHT = 4
+BRIGHTS_PER_DARK = 200
+BRIGHTS_PER_BRIGHT = 200
 
 
 '''
 The filtering generated 975 dark images (DI) and 9720 bright ones (BI)
-975x9 = 8775 random images from BI will be chosen and each image in DI will be combined
-with 9 images from that selection.
+For each image in DI, 200 random images from BI will be chosen as the reflection layer.
 
-Further, each 1944 (=9720/5) of randomly selected images from BI will combine with 4 images from the remaining 7776.
+Further, the least bright 975 images from BI will be used as background,
+and 200 randomly selected images from the brighter half of BI will be used on each of them.
 
-Total examples generated = 7776 + 8775 = 16551, with dark backgrounds making up ~53%
+Total examples generated = 2(975*200) = 390000, with dark backgrounds making up 50%
 '''
 
 def reshape_img(file_path):
@@ -79,36 +79,37 @@ with open(BRIGHT_IMAGES_VALS,'r') as img_list:
 bright_ordering = np.argsort(bright_vals)
 
 darks = dark_files[np.random.permutation(dark_files.shape[0])]
-brights = bright_files[np.random.permutation(bright_files.shape[0])]
-boundary_ind = int(bright_files.shape[0]/(BRIGHTS_PER_BRIGHT+1))
-# print(boundary_ind)
-brights_b = bright_files[bright_ordering[bright_files.shape[0] - boundary_ind:bright_files.shape[0]]]
-brights_r = bright_files[bright_ordering[0:bright_files.shape[0] - boundary_ind]]
-brights_r = brights_r[np.random.permutation(brights_r.shape[0])]
-brights_for_darks = bright_files[np.random.permutation(dark_files.shape[0]*BRIGHTS_PER_DARK)]
 
+# print(boundary_ind)
+brights_b = bright_files[bright_ordering[bright_files.shape[0] - dark_files.shape[0]:bright_files.shape[0]]]
+brights_r = bright_files[bright_ordering[0:bright_files.shape[0]//2]]
+
+total_count = 0
+max_count = brights_b.shape[0]*BRIGHTS_PER_BRIGHT + darks.shape[0]*BRIGHTS_PER_DARK
 all_files = []
+
 # generating those having dark backgrounds
-count = 0
 for dark in darks:
     b = reshape_img(dark)
+    rand_inds = random.sample(xrange(0,bright_files.shape[0]),BRIGHTS_PER_DARK)
     for i in range(BRIGHTS_PER_DARK):
-        r = reshape_img(brights_for_darks[count])
-        fname = export_synthetic(b,r,dark,brights_for_darks[count])
-        print(fname)
+        total_count += 1
+        r = reshape_img(bright_files[rand_inds[i]])
+        fname = export_synthetic(b,r,dark,bright_files[rand_inds[i]])
+        print(str.format("{0}/{1}",total_count,max_count) + fname)
         all_files.append(fname)
-        count+=1
 
 # generating the rest
-count = 0
+
 for bright in brights_b:
     b = reshape_img(bright)
+    rand_inds = random.sample(xrange(0,brights_r.shape[0]),BRIGHTS_PER_BRIGHT)
     for i in range(BRIGHTS_PER_BRIGHT):
-        r = reshape_img(brights_r[count])
-        fname = export_synthetic(b,r,bright,brights_r[count])
-        print(fname)
+        total_count += 1
+        r = reshape_img(brights_r[rand_inds[i]])
+        fname = export_synthetic(b,r,bright,brights_r[rand_inds[i]])
+        print(str.format("{0}/{1}",total_count,max_count) + fname)
         all_files.append(fname)
-        count+=1
 
 # write onto text file
 with open(ALL_SYNTHS_LIST,"w") as list_file:
