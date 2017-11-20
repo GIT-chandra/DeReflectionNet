@@ -18,7 +18,7 @@ VAL_IMAGES_LIST = 'val_imgs.txt'
 WEIGHTS_FILE = 'DRNet_unfrozen.h5'
 VGG_WEIGHTS = 'vgg16_weights_tf_dim_ordering_tf_kernels.h5'
 
-START_EPOCH = 1
+START_EPOCH = 25
 VGG_TRAINABLE = True
 
 class TrainHistory(keras.callbacks.Callback):
@@ -36,13 +36,15 @@ class TrainHistory(keras.callbacks.Callback):
         self.model.save_weights(WEIGHTS_FILE[:-3]+str(self.count) + ".h5")
         print('Saved.')
         self.count += 1
+        self.save_to_files()
 
     def save_to_files(self):
         np.save('DRNet_unfrozen_train_losses.npy',self.train_losses)
         np.save('DRNet_unfrozen_val_losses.npy',self.val_losses)
+        np.save('LastLR.npy',K.eval(self.model.optimizer.lr))
 
 class DRNet:
-    def __init__(self,dim_x = 224, dim_y = 224, dim_z = 4, batch_size = 16, num_epochs = 30, shuffle = True):
+    def __init__(self,dim_x = 224, dim_y = 224, dim_z = 4, batch_size = 16, num_epochs = 6, shuffle = True):
         self.data_params = {'dim_x': dim_x,
                         'dim_y':dim_y,
                         'dim_z':dim_z,
@@ -172,9 +174,9 @@ class DRNet:
 
     def train_model(self):
 
-        print("Loading weights for VGG16 ...")
-        self.model.load_weights(VGG_WEIGHTS,by_name = True)
-        print("Loaded weights.")
+        # print("Loading weights for VGG16 ...")
+        # self.model.load_weights(VGG_WEIGHTS,by_name = True)
+        # print("Loaded weights.")
 
         # print("Loading weights ...")
         # self.model.load_weights('DRNet7.h5')
@@ -190,6 +192,13 @@ class DRNet:
 
 if __name__ == '__main__':
     myDRnet = DRNet()
+
+    print("Loading weights ...")
+    myDRnet.model.load_weights('DRNet_unfrozen24.h5')
+    print("Loaded weights.")
+
+    myDRnet.model.optimizer.lr.assign(np.load('LastLR.npy'))
+
     myDRnet.train_model()
     myDRnet.history.save_to_files()
 

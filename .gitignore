@@ -2,3 +2,8 @@
 *.jpg
 *.h5
 trashy/*
+test_imgs/*
+train_imgs/*
+val_imgs/*
+generated_synths/*
+JPEGImages/*
