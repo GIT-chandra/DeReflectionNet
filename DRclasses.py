@@ -1,7 +1,6 @@
 import numpy as np
 import cv2
 from keras.preprocessing import image
-from imagenet_utils import preprocess_input
 from keras.models import Model
 
 def get_gradient(img_path):
