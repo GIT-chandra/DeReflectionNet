@@ -1,6 +1,5 @@
 import numpy as np
 import cv2
-from vgg16 import VGG16
 from keras.preprocessing import image
 from imagenet_utils import preprocess_input
 from keras.models import Model
@@ -45,21 +44,22 @@ class DataGenerator:
 
     def __data_generation(self,list_IDs_temp):
         X = np.empty((self.batch_size,self.dim_x,self.dim_y,self.dim_z))
-        y = np.empty((self.batch_size,self.dim_x,self.dim_y,3))
+        y = np.empty((self.batch_size,self.dim_x,self.dim_y,self.dim_z))
 
         for i, ID in enumerate(list_IDs_temp):
             cv_img = cv2.imread(ID)
             img = np.zeros(cv_img.shape)
             img += cv_img
             X[i,:,:,0:3] = img/255
-            X[i,:,:,3] = get_gradient(ID[:-4] + "_b.jpg")/255
+            X[i,:,:,3] = get_gradient(ID)/255
 
             label_fname = ID[:-4] + "_b.jpg"
 
             cv_back = cv2.imread(label_fname)
             back = np.zeros(cv_back.shape)
             back += cv_back
-            y[i,:,:,:] = back/255
+            y[i,:,:,0:3] = back/255
+            y[i,:,:,3] = get_gradient(label_fname)/255
 
         return X,y
 
