@@ -28,7 +28,7 @@ def get_gradient(img_path):
     return i_sum
 
 class DataGenerator:
-    def __init__(self,dim_x = 224, dim_y = 224, dim_z = 4, batch_size = 16, shuffle = True):
+    def __init__(self,dim_x = 224, dim_y = 224, dim_z = 3, batch_size = 16, shuffle = True):
         self.dim_x = dim_x
         self.dim_y = dim_y
         self.dim_z = dim_z
@@ -49,16 +49,16 @@ class DataGenerator:
             cv_img = cv2.imread(ID)
             img = np.zeros(cv_img.shape)
             img += cv_img
+            # X[i,:,:,0:3] = (img/127.5 -1)
             X[i,:,:,0:3] = img/255
-            X[i,:,:,3] = get_gradient(ID)/255
 
             label_fname = ID[:-4] + "_b.jpg"
 
             cv_back = cv2.imread(label_fname)
             back = np.zeros(cv_back.shape)
             back += cv_back
-            y[i,:,:,0:3] = back/255
-            y[i,:,:,3] = get_gradient(label_fname)/255
+            y[i,:,:,0:3] = (img-back)/255
+            # y[i,:,:,3] = get_gradient(label_fname)/255
 
         return X,y
 
